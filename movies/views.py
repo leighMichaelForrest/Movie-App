@@ -18,40 +18,51 @@ def home_page(request):
 
 def create(request):
     if request.method == 'POST':
+        url = request.POST.get('url') or 'https://semantic-ui.com/images/wireframe/image.png'
         data = {
             'Name': request.POST.get('name'),
-            'Pictures': [{'url': request.POST.get('url')}],
+            'Pictures': [{'url': url }],
             'Rating': int(request.POST.get('rating')),
             'Notes': request.POST.get('notes')
         }
 
-        response = AT.insert(data)
-        # Notify on create
-        messages.success(request, "New movie added: {}.".format(response['fields'].get('Name')))
-
+        try:
+                response = AT.insert(data)
+                # Notify on create
+                messages.success(request, "New movie added: {}.".format(response['fields'].get('Name')))
+        except Exception as e:
+            messages.warning("Got an error adding a movie: {}".format(e))
     return redirect('/')
 
 
 def edit(request, movie_id):
     if request.method == 'POST':
+
+        url = request.POST.get('url') or 'https://semantic-ui.com/images/wireframe/image.png'
+
         data = {
             'Name': request.POST.get('name'),
-            'Pictures': [{'url': request.POST.get('url')}],
+            'Pictures': [{'url': url}],
             'Rating': int(request.POST.get('rating')),
             'Notes': request.POST.get('notes')
         }
 
-        response = AT.update(movie_id, data)
+        try:
+            response = AT.update(movie_id, data)
 
-        # Notify on Update
-        messages.success(request, "New movie updated: {}.".format(response['fields'].get('Name')))
-
+            # Notify on Update
+            messages.success(request, "New movie updated: {}.".format(response['fields'].get('Name')))
+        except Exception as e:
+            messages.warning(request, 'Got an error when updating a movie: {}'.format(e))
     return redirect('/')
 
 def delete(request, movie_id):
     movie_name = AT.get(movie_id)["fields"].get('Name')
 
-    response = AT.delete(movie_id)
+    try:
+        response = AT.delete(movie_id)
+    except Exception as e:
+        messages.warning(request, 'Got an error when deleting a movie: {}'.format(e))
 
     #Notify on Delete
     messages.warning(request, 'Movie has been deleted: {}.'.format(movie_name))
